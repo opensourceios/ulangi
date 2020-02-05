@@ -107,16 +107,6 @@ export class SpacedRepetitionLessonScreenDelegate {
         this.observableScreen.reviewState.currentIndex === 0,
         (): void => this.previousItem(),
       ),
-      shouldShowAnswer === false
-        ? this.reviewActionButtonFactory.createShowAnswerButton(
-            (): void => {
-              this.showAnswer();
-              this.setUpButtons();
-            },
-          )
-        : this.reviewActionButtonFactory.createNextButton(
-            (): void => this.showReviewFeedbackBar(),
-          ),
       this.reviewActionButtonFactory.createPlayAudioButton(
         shouldShowAnswer === true || currentQuestionType === 'forward'
           ? vocabulary.vocabularyTerm
@@ -179,6 +169,11 @@ export class SpacedRepetitionLessonScreenDelegate {
     );
   }
 
+  public showAnswer(): void {
+    this.observableScreen.reviewState.shouldShowAnswer = true;
+    this.showReviewFeedbackBar();
+  }
+
   public autoUpdateButtons(): void {
     this.observer.reaction(
       (): boolean =>
@@ -202,11 +197,8 @@ export class SpacedRepetitionLessonScreenDelegate {
       feedback,
     );
 
-    this.reviewFeedbackBarDelegate.hide(
-      (): void => {
-        this.nextItem();
-      },
-    );
+    this.reviewFeedbackBarDelegate.hide();
+    this.nextItem();
   }
 
   public takeAnotherLesson(): void {
@@ -332,6 +324,7 @@ export class SpacedRepetitionLessonScreenDelegate {
           this.observableScreen.reviewState.shouldRunFadeOutAnimation === false,
         (): void => {
           const previousItem = this.reviewIterator.previous();
+          this.reviewFeedbackBarDelegate.showShowAnswerButton();
           this.observableScreen.reviewState.setUpPreviousItem(previousItem);
           this.setUpButtons();
         },
@@ -356,18 +349,15 @@ export class SpacedRepetitionLessonScreenDelegate {
         (): void => {
           const nextItem = this.reviewIterator.next();
           this.observableScreen.reviewState.setUpNextItem(nextItem);
+          this.reviewFeedbackBarDelegate.showShowAnswerButton();
           this.setUpButtons();
         },
       );
     }
   }
 
-  private showAnswer(): void {
-    this.observableScreen.reviewState.shouldShowAnswer = true;
-  }
-
   private showReviewFeedbackBar(): void {
-    this.reviewFeedbackBarDelegate.show(
+    this.reviewFeedbackBarDelegate.showFeedbackButtons(
       this.observableScreen.reviewState.vocabulary,
       this.observableScreen.numberOfFeedbackButtons.get(),
     );
